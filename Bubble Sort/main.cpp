@@ -7,8 +7,11 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
 
-void bubbleSort(std::vector<int>* set);
+std::vector<int> bubbleSort(std::vector<int> set, std::vector<sf::RectangleShape>* rect);
 void printNumbers(std::vector<int> set);
+template<typename T>
+void swap(T& a, T& b);
+void updateRectangle(std::vector<sf::RectangleShape>* rect, int index);
 
 #define SIZE 50
 
@@ -33,6 +36,9 @@ int main(int argc, char* argv[]) {
     sf::RenderWindow window(sf::VideoMode(windowSize.x, windowSize.y), "Bubble Sort");
     window.setFramerateLimit(60);
 
+    numbers = bubbleSort(numbers, &rect);
+    printNumbers(numbers);
+
     while(window.isOpen()) {
         sf::Event event;
         while(window.pollEvent(event)) {
@@ -43,6 +49,13 @@ int main(int argc, char* argv[]) {
         for(int i = 0; i < rect.size(); i++) {
             window.draw(rect[i]);
         }
+        /* for(int i = 0; i < numbers.size() - 1; i++) {
+            for(int j = 0; j < numbers.size() - i - 1; j++) {
+                if(numbers[j > numbers[j + 1]]) {
+
+                }
+            }
+        } */
 
         window.display();
     }
@@ -50,19 +63,17 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-void bubbleSort(std::vector<int>* set) {
-    if(set->empty())
+std::vector<int> bubbleSort(std::vector<int> set, std::vector<sf::RectangleShape>* rect) {
+    if(set.empty())
         throw std::runtime_error("Invalid size in bubbleSort");
-
-    for(int i = 0; i < set->size() - 1; i++) {
-        for(int j = 0; j < set->size() - i - 1; j++) {
-            if((*set)[j] > (*set)[j + 1]) {
-                auto temp = (*set)[j];
-                (*set)[j] = (*set)[j + 1];
-                (*set)[j + 1] = temp;
-            }
+    for(int i = 0; i < set.size() - 1; i++) {
+        for(int j = 0; j < set.size() - i - 1; j++) {
+            if(set[j] > set[j + 1])
+                swap(set[j], set[j + 1]);
         }
     }
+
+    return set;
 }
 
 void printNumbers(std::vector<int> set) {
@@ -72,4 +83,11 @@ void printNumbers(std::vector<int> set) {
     for(int i = 0; i < set.size(); i++) {
         std::cout << set[i] << std::endl;
     }
+}
+
+template<typename T>
+void swap(T& a, T& b) {
+    auto temp = a;
+    a = b;
+    b = temp;
 }
