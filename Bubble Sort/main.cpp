@@ -6,36 +6,49 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
 
-void bubbleSort(std::vector<int>& set, std::vector<sf::RectangleShape>& rect);
 void printNumbers(std::vector<int> set);
 template<typename T>
 void swap(T& a, T& b);
-std::string getPair(sf::Vector2f position);
 
-#define SIZE 50
+#define SIZE 20
 #define WINDOWSIZE 800
 
 struct rectangles {
-    sf::Vector2f position;
+    sf::Vector2f size;
     int height;
 } data[SIZE];
 
 int main(int argc, char* argv[]) {
     std::random_device rd;
     std::default_random_engine gen;
-    std::uniform_int_distribution<int> dist(1, WINDOWSIZE);
+    std::uniform_int_distribution<int> dist(1, 750); // Generates a number from 1 - 750
     sf::RectangleShape rect;
+    sf::Clock clock;
+    sf::Time time;
+    sf::Text text;
+    sf::Font font;
     int iter = 0;
-    int limit = SIZE - 1;
+    int limit = SIZE - 1; // This keeps "track" of how many numbers are sorted
+    bool finalTime = false; // Used to differentiate the current and final result
 
+    // It sets the values of the height in our struct to a random value
+    // The size of the rectangles are all the same, dependent on the window size and number of elements
     for(int i = 0; i < SIZE; i++) {
         data[i].height = dist(gen);
-        data[i].position.x = WINDOWSIZE / SIZE;
-        data[i].position.y = WINDOWSIZE;
+        data[i].size.x = WINDOWSIZE / SIZE;
+        data[i].size.y = WINDOWSIZE;
     }
 
     sf::RenderWindow window(sf::VideoMode(WINDOWSIZE, WINDOWSIZE), "Bubble Sort");
     window.setFramerateLimit(60);
+
+    if(!font.loadFromFile("DejaVuSans.ttf")) {
+        exit(-1);
+    }
+
+    text.setFont(font);
+    text.setFillColor(sf::Color::Green);
+    text.setCharacterSize(24);
 
     while(window.isOpen()) {
         sf::Event event;
@@ -44,47 +57,64 @@ int main(int argc, char* argv[]) {
                 window.close();
 
         window.clear(sf::Color::Black);
-
-        for(int i = 0; i < SIZE; i++) {
-            rect.setRotation(180);
-            rect.setOrigin(rect.getPoint(1));
-            rect.setSize(sf::Vector2f(data[i].position.x, data[i].height));
-            rect.setPosition(data[i].position.x * i, WINDOWSIZE);
-            rect.setFillColor(sf::Color::White);
-            rect.setOutlineColor(sf::Color::Black);
-            if(data[iter].height > data[iter + 1].height)
-                swap(data[iter].height, data[iter + 1].height);
-            if(iter == i)
-                rect.setFillColor(sf::Color::Green);
-            rect.setOutlineThickness(0.75);
-            window.draw(rect);
+        // Still sorting....
+        if(!finalTime) {
+            // This entire block is to display the time
+            time = clock.getElapsedTime();
+            text.setString(std::to_string(time.asSeconds()) + " seconds");
+            window.draw(text);
+            for(int i = 0; i < SIZE; i++) {
+                rect.setRotation(180); // Without this line, rectangles would be upside down
+                rect.setOrigin(rect.getPoint(1));
+                rect.setSize(sf::Vector2f(data[i].size.x, data[i].height));
+                rect.setPosition(data[i].size.x * i, WINDOWSIZE);
+                rect.setFillColor(sf::Color::White);
+                rect.setOutlineColor(sf::Color::Black);
+                // If one is higher than the other, swap them.
+                if(data[iter].height > data[iter + 1].height)
+                    swap(data[iter].height, data[iter + 1].height);
+                // iter keeps track of what rectangle the program is currently on
+                if(iter == i)
+                    rect.setFillColor(sf::Color::Green);
+                rect.setOutlineThickness(0.75);
+                window.draw(rect);
+            }
         }
+        // Finished sorting
+        else if(finalTime) {
+            text.setString(std::to_string(time.asSeconds()) + " seconds");
+            window.draw(text);
+            for(int i = 0; i < SIZE; i++) {
+                rect.setRotation(180);
+                rect.setOrigin(rect.getPoint(1));
+                rect.setSize(sf::Vector2f(data[i].size.x, data[i].height));
+                rect.setPosition(data[i].size.x * i, WINDOWSIZE);
+                rect.setFillColor(sf::Color::White);
+                rect.setOutlineColor(sf::Color::Black);
+                rect.setOutlineThickness(0.75);
+                window.draw(rect);
+            }
+        }
+
         window.display();
 
-        iter++;
+        iter++; // Current rectangle
+        // If the iterator is greater than the limit, it is done sorting for this round.
+        // Set it equal to 0 and decrement limit, some of the rectangles would be sorted
+        // at this point.
         if(iter >= limit) {
             iter = 0;
             limit--;
         }
+        // Lets the program know that it is finished sorting.
+        if(limit == 0) {
+            finalTime = true;
+            time = clock.getElapsedTime();
+            clock.restart();
+        }
     }
 
     return 0;
-}
-
-void bubbleSort(std::vector<int>& set, std::vector<sf::RectangleShape>& rect) {
-    if(set.empty())
-        throw std::runtime_error("Invalid size in bubbleSort");
-    for(int i = 0; i < set.size() - 1; i++) {
-        for(int j = 0; j < set.size() - i - 1; j++) {
-            if(set[j] > set[j + 1]) {
-                swap(set[j], set[j + 1]);
-                swap(rect[j], rect[j + 1]);
-                auto temp = rect[j].getPosition();
-                rect[j].setPosition(rect[j + 1].getPosition());
-                rect[j + 1].setPosition(temp);
-            }
-        }
-    }
 }
 
 void printNumbers(std::vector<int> set) {
@@ -101,9 +131,4 @@ void swap(T& a, T& b) {
     auto temp = a;
     a = b;
     b = temp;
-}
-
-std::string getPair(sf::Vector2f position) {
-    return "(" + std::to_string(position.x) +
-        ", " + std::to_string(position.y) + ")";
 }
