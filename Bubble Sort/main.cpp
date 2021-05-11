@@ -25,7 +25,8 @@ int main(int argc, char* argv[]) {
     sf::RectangleShape rect;
     sf::Clock clock;
     sf::Time time;
-    sf::Text text;
+    sf::Text timeText;
+    sf::Text numText;
     sf::Font font;
     int iter = 0;
     int limit = SIZE - 1; // This keeps "track" of how many numbers are sorted
@@ -46,9 +47,12 @@ int main(int argc, char* argv[]) {
         exit(-1);
     }
 
-    text.setFont(font);
-    text.setFillColor(sf::Color::Green);
-    text.setCharacterSize(24);
+    timeText.setFont(font);
+    timeText.setFillColor(sf::Color::Green);
+    timeText.setCharacterSize(24);
+    numText.setFont(font);
+    numText.setFillColor(sf::Color::Green);
+    numText.setCharacterSize(24);
 
     while(window.isOpen()) {
         sf::Event event;
@@ -57,12 +61,15 @@ int main(int argc, char* argv[]) {
                 window.close();
 
         window.clear(sf::Color::Black);
+        numText.setString("n: " + std::to_string(SIZE));
+        numText.setPosition(0, 25);
+        window.draw(numText);
         // Still sorting....
         if(!finalTime) {
             // This entire block is to display the time
             time = clock.getElapsedTime();
-            text.setString(std::to_string(time.asSeconds()) + " seconds");
-            window.draw(text);
+            timeText.setString(std::to_string(time.asSeconds()) + " seconds");
+            window.draw(timeText);
             for(int i = 0; i < SIZE; i++) {
                 rect.setRotation(180); // Without this line, rectangles would be upside down
                 rect.setOrigin(rect.getPoint(1));
@@ -82,8 +89,8 @@ int main(int argc, char* argv[]) {
         }
         // Finished sorting
         else if(finalTime) {
-            text.setString(std::to_string(time.asSeconds()) + " seconds");
-            window.draw(text);
+            timeText.setString(std::to_string(time.asSeconds()) + " seconds");
+            window.draw(timeText);
             for(int i = 0; i < SIZE; i++) {
                 rect.setRotation(180);
                 rect.setOrigin(rect.getPoint(1));
